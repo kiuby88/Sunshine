@@ -1,5 +1,6 @@
 package com.dev.kiuby88.sunshine.app;
 
+import android.content.Intent;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.support.v4.app.Fragment;
@@ -109,8 +110,11 @@ public class ForecastFragment extends Fragment {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 String item=adapter.getItem(position);
-                Toast toast = Toast.makeText(getActivity(), item, Toast.LENGTH_SHORT);
-                toast.show();
+                //Toast toast = Toast.makeText(getActivity(), item, Toast.LENGTH_SHORT);
+                //toast.show();
+                Intent detailIntent = new Intent(getActivity(), DetailActivity.class)
+                        .putExtra(Intent.EXTRA_TEXT, item);
+                startActivity(detailIntent);
             }
         });
 
