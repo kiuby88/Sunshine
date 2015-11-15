@@ -1,6 +1,10 @@
 package com.dev.kiuby88.sunshine.app;
 
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
@@ -45,9 +49,29 @@ public class MainActivity extends AppCompatActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+            startActivity(new Intent(this, SettingsActivity.class));
             return true;
+        } else if(id == R.id.action_show_location){
+
+            openPreferredLocationMap();
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    private void openPreferredLocationMap() {
+        SharedPreferences sharedPref = PreferenceManager
+                .getDefaultSharedPreferences(this);
+
+        Uri geoLocation = Uri.parse("geo:0,0?q=" +
+                sharedPref.getString(
+                        getString(R.string.pref_location_key),
+                        getString(R.string.pref_location_default)));
+
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.setData(geoLocation);
+        if (intent.resolveActivity(getPackageManager()) != null) {
+            startActivity(intent);
+        }
     }
 }

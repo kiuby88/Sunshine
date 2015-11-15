@@ -1,6 +1,29 @@
 <resources>
     <string name="app_name">Sunshine</string>
-    <string name="action_settings">Settings</string>
-    <string name="action_refresh" translatable="false">Refresh</string>
+
     <string name="title_activity_detail">DetailActivity</string>
+
+    <!-- Actions -->
+    <string name="action_settings">Settings</string>
+    <string name="title_activity_settings">Settings</string>
+    <string name="action_show_location">Show Location In Map</string>
+    <string name="action_refresh" translatable="false">Refresh</string>
+
+
+    <!-- settings string -->
+    <string name="pref_location_key" translateble="false">location</string>
+    <string name="pref_location_label">Location</string>
+    <string name="pref_location_default" translatable="false">29009,ES</string>
+
+    <string name="pref_temperature_key" translateble="false">temperature</string>
+    <string name="pref_temperature_label">Temperature Units</string>
+
+    <string name="pref_temperature_celsius_label" translatable="false">Celsius</string>
+    <string name="pref_temperature_kelvin_label" translatable="false">Kelvin</string>
+    <string name="pref_temperature_fahrenheit_label" translatable="false">Fahrenheit</string>
+
+    <string name="pref_temperature_celsius_value" translatable="false">metric</string>
+    <string name="pref_temperature_kelvin_value" translatable="false">kelvin</string>
+    <string name="pref_temperature_fahrenheit_value" translatable="false">imperial</string>
+
 </resources>

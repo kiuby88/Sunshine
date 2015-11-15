@@ -1,8 +1,10 @@
 package com.dev.kiuby88.sunshine.app;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
 import android.text.format.Time;
@@ -53,6 +55,12 @@ public class ForecastFragment extends Fragment {
     }
 
     @Override
+    public void onStart(){
+        super.onStart();
+        updateForecast();
+    }
+
+    @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.forecastfragment, menu);
     }
@@ -64,44 +72,34 @@ public class ForecastFragment extends Fragment {
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
         if (id == R.id.action_refresh) {
-            FetchWeatherTask t=new FetchWeatherTask();
-            t.execute("29009,ES");
+
+            updateForecast();
             return true;
         }
         return super.onOptionsItemSelected(item);
     }
+
+    private void updateForecast() {
+        SharedPreferences sharedPref = PreferenceManager
+                .getDefaultSharedPreferences(getActivity());
+        String location = sharedPref.getString(
+                getString(R.string.pref_location_key),
+                getString(R.string.pref_location_default));
+
+        FetchWeatherTask weatherTask=new FetchWeatherTask();
+        weatherTask.execute(location);
+    }
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-// Create some dummy data for the ListView.  Here's a sample weekly forecast
-        String[] data = {
-                "Mon 6/23 - Sunny - 31/17",
-                "Tue 6/24 - Foggy - 21/8",
-                "Wed 6/25 - Cloudy - 22/17",
-                "Thurs 6/26 - Rainy - 18/11",
-                "Fri 6/27 - Foggy - 21/10",
-                "Sat 6/28 - TRAPPED IN WEATHERSTATION - 23/18",
-                "Sun 6/29 - Sunny - 20/7",
-                "Mon 6/23 - Sunny - 31/17",
-                "Tue 6/24 - Foggy - 21/8",
-                "Wed 6/25 - Cloudy - 22/17",
-                "Thurs 6/26 - Rainy - 18/11",
-                "Fri 6/27 - Foggy - 21/10",
-                "Sat 6/28 - TRAPPED IN WEATHERSTATION - 23/18",
-                "Sun 6/29 - Sunny - 20/7"
-        };
-        List<String> weekForecast = new ArrayList<String>(Arrays.asList(data));
         View view = inflater.inflate(R.layout.fragment_main, container, false);
-        
 
-
-        //ArrayAdapter<String> adapter =  new ArrayAdapter<String>(getActivity(),
         adapter =  new ArrayAdapter<String>(getActivity(),
                 R.layout.list_item_forecast,
                 R.id.list_item_forecast_textview,
-                weekForecast);
-
+                new ArrayList<String>());
 
         ListView listView = (ListView) view.findViewById(R.id.listview_forecast);
         listView.setAdapter(adapter);
@@ -122,17 +120,10 @@ public class ForecastFragment extends Fragment {
 
     }
 
-
-
-
     public class FetchWeatherTask extends AsyncTask<String, Void, String[]>{
 
         private final String LOG_TAG = FetchWeatherTask.class.getSimpleName();
 
-
-        /* The date/time conversion code is going to be moved outside the asynctask later,
-     * so for convenience we're breaking it out into its own method now.
-     */
         private String getReadableDateString(long time){
             // Because the API returns a unix timestamp (measured in seconds),
             // it must be converted to milliseconds in order to be converted to valid date.
@@ -143,13 +134,24 @@ public class ForecastFragment extends Fragment {
         /**
          * Prepare the weather high/lows for presentation.
          */
-        private String formatHighLows(double high, double low) {
-            // For presentation, assume the user doesn't care about tenths of a degree.
-            long roundedHigh = Math.round(high);
-            long roundedLow = Math.round(low);
+        private String formatHighLows(double high, double low, String unitType) {
 
-            String highLowStr = roundedHigh + "/" + roundedLow;
-            return highLowStr;
+            if(unitType.equals(getString(R.string.pref_temperature_fahrenheit_value))) {
+                //from celsius to farenheir
+                high = (high * 1.8) + 32;
+                low= (low * 1.8) + 32;
+            } else if(unitType.equals(getString(R.string.pref_temperature_kelvin_value))) {
+                //from celsius to kelvin
+                high = high + 273.15;
+                low= low +  273.15;
+            }
+
+            //long roundedHigh = Math.round(high);
+            //long roundedLow = Math.round(low);
+            //String highLowStr = roundedHigh + "/" + roundedLow;
+            //return highLowStr;
+
+            return Math.round(high) + "/" + Math.round(low);
         }
 
         /**
@@ -218,7 +220,13 @@ public class ForecastFragment extends Fragment {
                 double high = temperatureObject.getDouble(OWM_MAX);
                 double low = temperatureObject.getDouble(OWM_MIN);
 
-                highAndLow = formatHighLows(high, low);
+                SharedPreferences sharedPref = PreferenceManager
+                        .getDefaultSharedPreferences(getActivity());
+                String unit_temperature = sharedPref.getString(
+                        getString(R.string.pref_temperature_key),
+                        getString(R.string.pref_temperature_celsius_value));
+
+                highAndLow = formatHighLows(high, low, unit_temperature);
                 resultStrs[i] = day + " - " + description + " - " + highAndLow;
             }
 
@@ -226,14 +234,11 @@ public class ForecastFragment extends Fragment {
                 Log.v(LOG_TAG, "Forecast entry: " + s);
             }
             return resultStrs;
-
         }
 
         @Override
         protected String[] doInBackground(String... params) {
 
-            // These two need to be declared outside the try/catch
-            // so that they can be closed in the finally block.
             HttpURLConnection urlConnection = null;
             BufferedReader reader = null;
 
@@ -268,8 +273,6 @@ public class ForecastFragment extends Fragment {
                 //http://api.openweathermap.org/data/2.5/forecast/daily?q=94043&mode=json&units=metric&cnt=7&appid=BuildConfig.OPEN_WEATHER_MAP_API_KEY
 
                 URL url = new URL(builtUri.toString());
-
-
 
                 // Create the request to OpenWeatherMap, and open the connection
                 urlConnection = (HttpURLConnection) url.openConnection();
@@ -337,9 +340,7 @@ public class ForecastFragment extends Fragment {
                 // New data is back from the server.  Hooray!
             }
         }
-
     }
-
 
 
 }
