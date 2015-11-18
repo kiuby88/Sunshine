@@ -9,11 +9,15 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 
 public class MainActivity extends AppCompatActivity {
+
+    private final String LOG_TAG = MainActivity.class.getSimpleName();
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,4 +78,42 @@ public class MainActivity extends AppCompatActivity {
             startActivity(intent);
         }
     }
+
+
+    @Override
+    public void onStart() {
+        Log.v(LOG_TAG, "in onStart");
+        super.onStart();
+        // The activity is about to become visible.
+    }
+
+    @Override
+    public void onResume() {
+        Log.v(LOG_TAG, "in onResume");
+        super.onResume();
+        // The activity has become visible (it is now "resumed").
+    }
+
+    @Override
+    public void onPause() {
+        Log.v(LOG_TAG, "in onPause");
+        super.onPause();
+        // Another activity is taking focus (this activity is about to be "paused").
+    }
+
+    @Override
+    public void onStop() {
+        Log.v(LOG_TAG, "in onStop");
+        super.onStop();
+        // The activity is no longer visible (it is now "stopped")
+    }
+
+    @Override
+    public void onDestroy() {
+        Log.v(LOG_TAG, "in onDestroy");
+        super.onDestroy();
+        // The activity is about to be destroyed.
+    }
+
+
 }
